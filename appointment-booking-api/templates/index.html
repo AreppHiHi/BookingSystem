@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <title>Booking System v2</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; max-width: 1000px; margin: auto; padding: 20px; background: #f0f2f5; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 25px; }
+        .flex { display: flex; gap: 20px; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; color: #555; }
+        .btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; font-weight: bold; font-size: 14px; }
+        .btn-confirm { background: #2ecc71; color: white; }
+        .btn-primary { background: #3498db; color: white; width: 100%; margin-top: 10px; }
+        .status-pending { color: #f39c12; font-weight: bold; }
+        .status-confirmed { color: #2ecc71; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2>Booking Management</h2>
+        {% if is_admin %}
+            <div>
+                <span style="margin-right: 15px;">👤 Admin: <b>{{ session['admin_user'] }}</b></span>
+                <a href="/logout" style="color: red;">Logout</a>
+            </div>
+        {% else %}
+            <a href="/login" class="btn" style="background: #555; color: white;">Admin Login</a>
+        {% endif %}
+    </header>
+
+    <div class="flex">
+        <div class="card" style="flex: 1;">
+            <h3>Daftar Pelanggan</h3>
+            <form action="/add_user_form" method="POST">
+                <input type="text" name="name" placeholder="Nama Penuh" style="width:94%; padding:10px; margin-bottom:10px;" required>
+                <input type="email" name="email" placeholder="Email" style="width:94%; padding:10px; margin-bottom:10px;" required>
+                <button type="submit" class="btn btn-primary">Simpan User</button>
+            </form>
+        </div>
+
+        <div class="card" style="flex: 1;">
+            <h3>Tempah Masa</h3>
+            <form action="/add_app_form" method="POST">
+                <select name="user_id" style="width:100%; padding:10px; margin-bottom:10px;" required>
+                    <option value="">-- Pilih Nama Anda --</option>
+                    {% for user in users %}
+                        <option value="{{ user.id }}">{{ user.name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="date" name="appointment_date" style="width:94%; padding:10px; margin-bottom:10px;" required>
+                <input type="time" name="appointment_time" style="width:94%; padding:10px; margin-bottom:10px;" required>
+                <button type="submit" class="btn btn-primary">Book Sekarang</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Status Janji Temu</h3>
+        <table>
+            <tr>
+                <th>Pelanggan</th>
+                <th>Tarikh</th>
+                <th>Masa</th>
+                <th>Status</th>
+                {% if is_admin %}
+                    <th>Tindakan Admin</th>
+                {% endif %}
+            </tr>
+            {% for app in appointments %}
+            <tr>
+                <td>{{ app.user_name }}</td>
+                <td>{{ app.appointment_date }}</td>
+                <td>{{ app.appointment_time }}</td>
+                <td class="status-{{ app.status }}">{{ app.status.upper() }}</td>
+                
+                {% if is_admin %}
+                <td>
+                    {% if app.status == 'pending' %}
+                        <a href="{{ url_for('confirm_appointment', app_id=app.id) }}" class="btn btn-confirm">Confirm ✅</a>
+                    {% else %}
+                        <span style="color: #27ae60;">Sudah Disahkan</span>
+                    {% endif %}
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</body>
+</html>
